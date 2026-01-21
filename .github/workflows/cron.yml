@@ -1,5 +1,4 @@
 name: Vercel Cron Trigger
-
 on:
   schedule:
     - cron: "*/5 * * * *"
@@ -9,14 +8,44 @@ jobs:
   cron:
     runs-on: ubuntu-latest
     steps:
+      - name: Set up job
+        run: echo "Starting cron jobs..."
+
       - name: Publish scheduled
         run: |
-          curl -sS --fail-with-body -X POST \
+          response=$(curl -sS -w "\n%{http_code}" \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
-            "${{ secrets.CRON_URL }}/api/cron/publish-scheduled"
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.CRON_URL }}/api/cron/publish-scheduled?secret=${{ secrets.CRON_SECRET }}")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Status: $http_code"
+          
+          if [ "$http_code" != "200" ]; then
+            echo "Error: Request failed with status $http_code"
+            exit 1
+          fi
 
       - name: Auto sync
         run: |
-          curl -sS --fail-with-body -X POST \
+          response=$(curl -sS -w "\n%{http_code}" \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
-            "${{ secrets.CRON_URL }}/api/cron/auto-sync"
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.CRON_URL }}/api/cron/auto-sync?secret=${{ secrets.CRON_SECRET }}")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Status: $http_code"
+          
+          if [ "$http_code" != "200" ]; then
+            echo "Error: Request failed with status $http_code"
+            exit 1
+          fi
+
+      - name: Complete job
+        run: echo "All cron jobs completed successfully"
