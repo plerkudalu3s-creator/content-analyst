@@ -11,16 +11,12 @@ jobs:
     steps:
       - name: Publish scheduled
         run: |
-          curl -X POST \
+          curl -sS --fail \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
-            -H "Content-Type: application/json" \
-            --fail \
             "${{ secrets.CRON_URL }}/api/cron/publish-scheduled"
 
       - name: Auto sync
         run: |
-          curl -X POST \
+          curl -sS --fail \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
-            -H "Content-Type: application/json" \
-            --fail \
             "${{ secrets.CRON_URL }}/api/cron/auto-sync"
