@@ -13,10 +13,12 @@ jobs:
         run: |
           curl -sS --fail \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
-            "${{ secrets.CRON_URL }}/api/cron/publish-scheduled"
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.CRON_URL }}/api/cron/publish-scheduled?secret=${{ secrets.CRON_SECRET }}"
 
       - name: Auto sync
         run: |
           curl -sS --fail \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
-            "${{ secrets.CRON_URL }}/api/cron/auto-sync"
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.CRON_URL }}/api/cron/auto-sync?secret=${{ secrets.CRON_SECRET }}"
