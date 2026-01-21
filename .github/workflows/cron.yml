@@ -1,10 +1,8 @@
 name: Vercel Cron Trigger
-
 on:
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
-
 jobs:
   cron:
     runs-on: ubuntu-latest
@@ -12,11 +10,10 @@ jobs:
       - name: Publish scheduled
         run: |
           curl -fsS \
-            -H "x-cron-secret: ${{ vars.CRON_SECRET }}" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
             "${{ secrets.CRON_URL }}/api/cron/publish-scheduled"
-
       - name: Auto sync
         run: |
           curl -fsS \
-            -H "x-cron-secret: ${{ vars.CRON_SECRET }}" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
             "${{ secrets.CRON_URL }}/api/cron/auto-sync"
