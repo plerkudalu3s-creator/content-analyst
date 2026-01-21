@@ -8,15 +8,56 @@ on:
 jobs:
   cron:
     runs-on: ubuntu-latest
-    steps:
-      - name: Publish scheduled
-        run: |
-          curl -sS \
-            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
-            "${{ secrets.CRON_URL }}/api/cron/publish-scheduled"
 
-      - name: Auto sync
+    steps:
+      - name: Validate secrets
+        shell: bash
         run: |
-          curl -sS \
-            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
-            "${{ secrets.CRON_URL }}/api/cron/auto-sync"
+          if [ -z "${{ secrets.CRON_URL }}" ]; then echo "CRON_URL is EMPTY"; exit 1; fi
+          if [ -z "${{ secrets.CRON_SECRET }}" ]; then echo "CRON_SECRET is EMPTY"; exit 1; fi
+          echo "Secrets OK"
+
+      - name: Publish scheduled (retry 3x)
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="${{ secrets.CRON_URL }}/api/cron/publish-scheduled"
+          for i in 1 2 3; do
+            echo "Attempt $i: POST $URL"
+            if curl -sS -X POST \
+              -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+              -H "Content-Type: application/json" \
+              --connect-timeout 10 --max-time 60 \
+              --fail \
+              "$URL"; then
+              echo "publish-scheduled OK"
+              exit 0
+            fi
+            echo "publish-scheduled failed, retrying..."
+            sleep 5
+          done
+          echo "publish-scheduled failed after 3 retries"
+          exit 1
+
+      - name: Auto sync (retry 3x)
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="${{ secrets.CRON_URL }}/api/cron/auto-sync"
+          for i in 1 2 3; do
+            echo "Attempt $i: POST $URL"
+            if curl -sS -X POST \
+              -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+              -H "Content-Type: application/json" \
+              --connect-timeout 10 --max-time 60 \
+              --fail \
+              "$URL"; then
+              echo " auto-sync OK"
+              exit 0
+            fi
+            echo "auto-sync failed, retrying..."
+            sleep 5
+          done
+          echo "auto-sync failed after 3 retries"
+          exit 1
+
