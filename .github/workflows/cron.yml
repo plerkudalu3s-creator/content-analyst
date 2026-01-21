@@ -11,14 +11,12 @@ jobs:
     steps:
       - name: Publish scheduled
         run: |
-          curl -sS --fail \
+          curl -sS --fail-with-body -X POST \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "${{ secrets.CRON_URL }}/api/cron/publish-scheduled?secret=${{ secrets.CRON_SECRET }}"
+            "${{ secrets.CRON_URL }}/api/cron/publish-scheduled"
 
       - name: Auto sync
         run: |
-          curl -sS --fail \
+          curl -sS --fail-with-body -X POST \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "${{ secrets.CRON_URL }}/api/cron/auto-sync?secret=${{ secrets.CRON_SECRET }}"
+            "${{ secrets.CRON_URL }}/api/cron/auto-sync"
